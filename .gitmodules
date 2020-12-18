@@ -1,0 +1,7 @@
+[submodule "deps/pmdk"]
+	path = deps/pmdk
+	url = https://github.com/pmem/pmdk
+[submodule "deps/libpmemobj-cpp"]
+	path = deps/libpmemobj-cpp
+	url = https://github.com/pmem/libpmemobj-cpp.git
+	branch = stable-1.13

@@ -1,0 +1,141 @@
+diff --git a/src/Makefile b/src/Makefile
+index 8923a265a..795289e5a 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -8,9 +8,11 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
+ include $(TOP)/src/common.inc
+ 
+ # core targets
+-TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools
++# TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools
++TARGETS = libpmem libpmemobj
+ # make all targets
+-ALL_TARGETS = $(TARGETS) common core librpmem libpmem2
++# ALL_TARGETS = $(TARGETS) common core librpmem libpmem2
++ALL_TARGETS = libpmem libpmemobj common core
+ # all available targets
+ POSSIBLE_TARGETS = $(TARGETS) common core librpmem rpmem_common test\
+ 	examples benchmarks libpmem2
+diff --git a/src/Makefile.inc b/src/Makefile.inc
+index 04ab0192f..ab65598e7 100644
+--- a/src/Makefile.inc
++++ b/src/Makefile.inc
+@@ -312,6 +312,16 @@ $(objdir)/%.htmp: %.h
+ %.link: %.link.in
+ ifeq ($(FAULT_INJECTION),1)
+ 	@sed 's/fault_injection;/$(LIBRARY_NAME)_inject_fault_at;\n\t\t$(LIBRARY_NAME)_fault_injection_enabled;/g' $< > $@_temp
++else ifneq ($(PMRACEPASS_FLAGS),)
++	@if [ "$@" = "libpmemobj.link" ] ; then \
++		echo "add dfsan's func prefix('dfs$$') to $@" && \
++		sed -e 's/pmemobj_.*$$/dfs\$$&/' -e '/fault_injection;/d' $< > $@_temp; \
++	elif [ "$@" = "libpmem.link" ] ; then \
++		echo "add dfsan's func prefix('dfs$$') to $@" && \
++		sed -e 's/pmem_.*$$/dfs\$$&/' -e '/fault_injection;/d' $< > $@_temp; \
++	else \
++		echo "not support $@" && exit 1; \
++	fi
+ else
+ 	@sed '/fault_injection;/d' $< > $@_temp
+ endif
+diff --git a/src/libpmem2/x86_64/flush.h b/src/libpmem2/x86_64/flush.h
+index cad35e2dc..14ab7b1fa 100644
+--- a/src/libpmem2/x86_64/flush.h
++++ b/src/libpmem2/x86_64/flush.h
+@@ -10,6 +10,10 @@
+ #include "util.h"
+ #include "valgrind_internal.h"
+ 
++#if defined(__clang_major__) && (__clang_major__ > 10)
++#include <x86intrin.h>
++#endif
++
+ #define FLUSH_ALIGN ((uintptr_t)64)
+ 
+ static force_inline void
+@@ -18,7 +22,7 @@ pmem_clflush(const void *addr)
+ 	_mm_clflush(addr);
+ }
+ 
+-#ifdef _MSC_VER
++#if defined(_MSC_VER) || (defined(__clang_major__) && (__clang_major__ > 10))
+ static force_inline void
+ pmem_clflushopt(const void *addr)
+ {
+diff --git a/src/libpmemobj/obj.c b/src/libpmemobj/obj.c
+index 13abe2ac6..23307f8b7 100644
+--- a/src/libpmemobj/obj.c
++++ b/src/libpmemobj/obj.c
+@@ -8,6 +8,7 @@
+ #include <limits.h>
+ #include <wchar.h>
+ #include <stdbool.h>
++#include <stdio.h>
+ 
+ #include "valgrind_internal.h"
+ #include "libpmem.h"
+@@ -1391,6 +1392,13 @@ pmemobj_createU(const char *path, const char *layout,
+ 		goto err;
+ 	}
+ 
++	printf("--------------------------------------------------------------\n");
++	printf("pool_addr: %p\n", pop);
++	printf("heap offset: %lu, offsetof(PMEMobjpool, heap_offset): %lu\n", pop->heap_offset, offsetof(PMEMobjpool, heap_offset));
++	printf("heap size: %lu, offsetof(PMEMobjpool, heap_size): %lu\n", pop->heap_size, offsetof(PMEMobjpool, heap_size));
++	printf("heap region: [%p, %p]\n", (char *)pop + pop->heap_offset, (char *)pop + pop->heap_offset + pop->heap_size);
++
++
+ 	if (util_poolset_chmod(set, mode))
+ 		goto err;
+ 
+diff --git a/src/libpmemobj/tx.c b/src/libpmemobj/tx.c
+index b22f93171..ad42d929e 100644
+--- a/src/libpmemobj/tx.c
++++ b/src/libpmemobj/tx.c
+@@ -1401,6 +1401,11 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
+ 		.flags = flags,
+ 	};
+ 
++	printf("--------------------------------------------------------------\n");
++	printf("[pmemobj_tx_add_range_direct]\n");
++	printf("tx_offset: %lu\n", args.offset);
++	printf("tx_size: %lu\n", args.size);
++
+ 	ret = pmemobj_tx_add_common(tx, &args);
+ 
+ 	PMEMOBJ_API_END();
+@@ -1447,6 +1452,11 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
+ 		.flags = flags,
+ 	};
+ 
++	printf("--------------------------------------------------------------\n");
++	printf("[pmemobj_tx_xadd_range_direct]\n");
++	printf("tx_offset: %lu\n", args.offset);
++	printf("tx_size: %lu\n", args.size);
++
+ 	ret = pmemobj_tx_add_common(tx, &args);
+ 
+ 	PMEMOBJ_API_END();
+@@ -1485,6 +1495,11 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
+ 		.flags = flags,
+ 	};
+ 
++	printf("--------------------------------------------------------------\n");
++	printf("[pmemobj_tx_add_range]\n");
++	printf("tx_offset: %lu\n", args.offset);
++	printf("tx_size: %lu\n", args.size);
++
+ 	ret = pmemobj_tx_add_common(tx, &args);
+ 
+ 	PMEMOBJ_API_END();
+@@ -1531,6 +1546,11 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
+ 		.flags = flags,
+ 	};
+ 
++	printf("--------------------------------------------------------------\n");
++	printf("[pmemobj_tx_xadd_range]\n");
++	printf("tx_offset: %lu\n", args.offset);
++	printf("tx_size: %lu\n", args.size);
++
+ 	ret = pmemobj_tx_add_common(tx, &args);
+ 
+ 	PMEMOBJ_API_END();
