@@ -1,10 +1,6 @@
 ### Requirements
 
-There are two classes of dependencies: **basic** and **optional** dependencies.
-**Basic dependencies** are `libndctl-dev` (v63 or later) and `libdaxctl-dev` (v63 or later).
-**Optional dependencies** are `libelf-dev`, `elfutils`, `libdw-dev` and `libunwind-dev`.
-
-Install the following packages for basic and optional dependencies on Ubuntu 18.04 (or above).
+Install the following dependencies on Ubuntu 18.04 (or above).
 
 ```sh
         $ sudo apt-get install build-essential autoconf pkg-config \
@@ -12,15 +8,6 @@ Install the following packages for basic and optional dependencies on Ubuntu 18.
                 m4 pandoc libndctl-dev libdaxctl-dev \
                 libelf-dev elfutils libdw-dev libunwind-dev
 ```
-
-For basic dependencies only, run the following command.
-
-```sh
-        $ sudo apt-get install build-essential autoconf pkg-config \
-                git python3 python3-dev \
-                m4 pandoc libndctl-dev libdaxctl-dev
-```
-
 
 Additional notes:
 
@@ -43,11 +30,13 @@ Apply the attached patch for PMDK.
         $ git apply ../../patches/pmdk.diff
 ```
 
-**NOTE**: There are many enviroumental variables to be set. Please source the `env.sh` in the root folder of this repository. If `env.sh` does not exist, contact the developers. A typical command to setup the environmental variables is as follows.
+There are some enviroument variables to be set.
 
 ```sh
-        $ cd /path/to/pmrace
-        $ source ./env.sh
+        $ export PMEM_IS_PMEM_FORCE=1
+        $ export LLVM_DIR=/path/to/llvm-11-install-dir
+        $ export PATH=$LLVM_DIR/bin:$PATH
+        $ export PMRACE_DIR=/path/to/pmrace
 ```
 
 
@@ -65,15 +54,8 @@ Apply the attached patch for PMDK.
         $ make
 ```
 
-Build without stack traces enabled (due to the lack of `libdw` and `libunwind`)
+3. Build PMDK using PMRace
 
 ```sh
-        $ make BUILD_STACK_TRACE=n              # disable optional stack trace
-```
-
-3. Build and instrument the dependencies (i.e., PMDK) for testing
-
-```sh
-        $ cd $PMRACE_DIR/tests
-        $ make
+        $ make pmdk
 ```
