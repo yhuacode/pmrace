@@ -756,8 +756,8 @@ class FuzzProbe(object):
             err_files += glob.glob(folder + '/*.parsed.err')
         err_files = sorted(err_files)
 
-        bug_IDs = []
         for e_f in err_files:
+            bug_IDs = []
             with open(e_f, 'r') as f:
                 contents = f.read().strip().split('\n\n')
 
