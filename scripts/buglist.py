@@ -1,3 +1,15 @@
+###############################################################################
+# This file describes the locations of bugs found by PMRace.
+#
+# A record is identified by "(WRITE_LOC, READ_LOC, UNIQUE_BUG_ID)". The
+# locations are specific line numbers of code after applying patches, while the
+# locations in our ASPLOS 2022 paper denote the line numbers in original code.
+# Though the line numbers in this bug list are slightly different from those
+# in our paper, their corresponding codes are the same. "UNIQUE_BUG_ID"
+# is the identifier for a unique bug, which is a group of bugs due to the same
+# same store instruction in a PM program.
+###############################################################################
+
 inter_thread_inconsistency_locs = [
     #######################################################
     # P-CLHT in RECIPE
@@ -36,7 +48,7 @@ inter_thread_inconsistency_locs = [
     ('items.c:1096', 'memcached.c:2806', 3),
 
     # Reading non-persisted "slabs_clsid" field of items => writing "slabs_clsid" of other items
-    ('items.c:627', 'memcached.c:623', 4),
+    ('items.c:627', 'items.c:623', 4),
 
     # Reading non-persisted item values => writing item values
     ('memcached.c:4293', 'libpmem2/x86_64/memcpy/memcpy_avx.h:56', 5),
