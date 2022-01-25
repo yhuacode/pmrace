@@ -1,3 +1,9 @@
+### Description
+
+PMRace is a fuzz testing tool to efficiently detect persistent memory (PM) concurrency bugs hidden in thread interleavings. For more details, please refer to our paper:
+
+- Zhangyu Chen, Yu Hua, Yongle Zhang, Luochangqi Ding, "Efficiently Detecting Concurrency Bugs in Persistent Memory Programs", Proceedings of the 27th ACM International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS), 2022.
+
 ### Requirements
 
 Install the following dependencies on Ubuntu 18.04 (or above).
@@ -48,7 +54,7 @@ There are some enviroument variables to be set.
         $ cd $PMRACE_DIR/instrument
 ```
 
-2. Build the pass and `hook_ctr_cli`
+2. Build the LLVM pass and `hook_ctr_cli`
 
 ```sh
         $ make
@@ -59,3 +65,13 @@ There are some enviroument variables to be set.
 ```sh
         $ make pmdk
 ```
+
+### Use
+
+Here are some [examples](https://github.com/yhuacode/pm-workloads) for the use of PMRace to debug PM programs. We have constructed and released [artifacts](https://github.com/yhuacode/pmrace-vagrant) for public use.
+
+## Contact
+
+If you have any problems, please report in the issue page or contact me.
+
+- Zhangyu Chen (chenzy@hust.edu.cn)
