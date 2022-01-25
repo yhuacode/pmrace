@@ -73,8 +73,14 @@ intra_thread_inconsistency_locs = [
     #######################################################
     # Clevel Hashing
 
-    # Reading non-persisted 'meta' => PM allocation for level objects
-    ('detail/compound_pool_ptr.hpp:61', 'detail/compound_pool_ptr.hpp:136', 1),
+    # This report is a false positive: the inconsistency can be detected by
+    # pool checking and fixed by index reconstruction during recovery.
+    # Essentially, the aborted transaction for index allocation causes an
+    # inconsistent pmem pool, which will fail the pool checking in recovery
+    # and require pool reconstruction. Once the pool is re-created, the
+    # inconsistency is fixed and harmful impacts (e.g., PM leakage) will
+    # not happen. Hence, this inconsistency is benign.
+    # ('detail/compound_pool_ptr.hpp:61', 'detail/compound_pool_ptr.hpp:136', 1),
 
     #######################################################
     # CCEH

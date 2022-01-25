@@ -62,9 +62,9 @@ def gen_fast_fair_recover_cmd(worker_id: int, pool_name: str) -> List[str]:
     cmd = FAST_FAIR_CMD_TEMPLATE.format(nthreads=FAST_FAIR_THREAD_NUM, pool=pool_name)
     return cmd.strip().split()
 
-# def gen_clevel_recover_cmd(worker_id: int, pool_name: str) -> List[str]:
-#     cmd = CLEVEL_CMD_TEMPLATE.format(nthreads=CLEVEL_THREAD_NUM, pool=pool_name)
-#     return cmd.strip().split()
+def gen_clevel_recover_cmd(worker_id: int, pool_name: str) -> List[str]:
+    cmd = CLEVEL_CMD_TEMPLATE.format(nthreads=CLEVEL_THREAD_NUM, pool=pool_name)
+    return cmd.strip().split()
 
 
 AVALIABLE_PROGRAMS = [
@@ -78,7 +78,7 @@ AVALIABLE_PROGRAMS = [
     ('memcached-re', gen_memcached_recover_cmd),
     ('cceh-re', gen_cceh_recover_cmd),
     ('fast-fair-re', gen_fast_fair_recover_cmd),
-    # ('clevel-re', gen_clevel_recover_cmd),
+    ('clevel-re', gen_clevel_recover_cmd),
 ]
 
 
